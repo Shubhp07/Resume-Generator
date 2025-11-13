@@ -1,231 +1,151 @@
 import React, { useState } from "react";
+import { PlusIcon, TrashIcon } from "@heroicons/react/24/solid";
 
-const ResumeForm = ({ onResumeGenerated }) => {
+export default function ResumeGeneratorUI({ onResumeGenerated }) {
+  // ensure callback is a function – provide a safe default so component won't crash
+  const resumeCallback = typeof onResumeGenerated === "function" ? onResumeGenerated : (data) => {
+    // fallback behaviour: log to console and show a small notification
+    console.log("onResumeGenerated not provided — resume data:", data);
+    try {
+      // friendly alert for development — remove in production
+      // eslint-disable-next-line no-alert
+      alert("Resume data prepared. Check console for details.");
+    } catch (e) {
+      // ignore
+    }
+  };
+
   const [profile, setProfile] = useState({
     name: "",
     email: "",
     summary: "",
-    experience: [
-      { title: "", company: "", startDate: "", endDate: "", description: "" },
-    ],
+    experience: [{ title: "", company: "", startDate: "", endDate: "", description: "" }],
     education: [{ degree: "", institution: "", year: "" }],
-    skills: "",
+    skills: ""
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
 
-  const handleChange = (e, index, type) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e, idx, type) => {
     const { name, value } = e.target;
-    if (type === "experience") {
-      const newExperience = [...profile.experience];
-      newExperience[index][name] = value;
-      setProfile({ ...profile, experience: newExperience });
-    } else if (type === "education") {
-      const newEducation = [...profile.education];
-      newEducation[index][name] = value;
-      setProfile({ ...profile, education: newEducation });
-    } else {
-      setProfile({ ...profile, [name]: value });
+    if (!type) {
+      setProfile((p) => ({ ...p, [name]: value }));
+      return;
     }
+    setProfile((p) => {
+      const updated = [...p[type]];
+      updated[idx] = { ...updated[idx], [name]: value };
+      return { ...p, [type]: updated };
+    });
   };
 
   const addSection = (type) => {
-    if (type === "experience") {
-      setProfile({
-        ...profile,
-        experience: [
-          ...profile.experience,
-          {
-            title: "",
-            company: "",
-            startDate: "",
-            endDate: "",
-            description: "",
-          },
-        ],
-      });
-    } else if (type === "education") {
-      setProfile({
-        ...profile,
-        education: [
-          ...profile.education,
-          { degree: "", institution: "", year: "" },
-        ],
-      });
-    }
+    const newItem = type === "experience"
+      ? { title: "", company: "", startDate: "", endDate: "", description: "" }
+      : { degree: "", institution: "", year: "" };
+    setProfile((p) => ({ ...p, [type]: [...p[type], newItem] }));
   };
 
-  const handleSubmit = async (e) => {
+  const deleteSection = (type, idx) => {
+    setProfile((p) => ({ ...p, [type]: p[type].filter((_, i) => i !== idx) }));
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+
+    const skillsArray = profile.skills
+      ? profile.skills.split(",").map((s) => s.trim()).filter(Boolean)
+      : [];
+
+    const formatted = { ...profile, skills: skillsArray };
+
+    // call safe callback
     try {
-      // The API expects skills as an array, so we split the string
-      const profileToSend = {
-        ...profile,
-        skills: profile.skills.split(",").map((skill) => skill.trim()),
-      };
-      onResumeGenerated(profileToSend);
+      resumeCallback(formatted);
     } catch (err) {
-      setError("Failed to generate resume. Please try again.");
-      console.error(err);
+      console.error("Error in onResumeGenerated callback:", err);
     }
+
     setLoading(false);
   };
 
+  const card = "p-6 bg-white rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition";
+  const input = "w-full p-3 bg-gray-100 rounded-xl border border-gray-300 focus:bg-white focus:ring-2 focus:ring-blue-400 transition";
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
-      {error && <div className="text-red-500">{error}</div>}
+    <form onSubmit={handleSubmit} className="w-full max-w-4xl mx-auto p-10 space-y-10 bg-gradient-to-br from-gray-50 to-gray-200 rounded-3xl shadow-xl">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900">AI Resume Generator</h1>
+        <p className="text-gray-600 mt-2">Fill your details and generate a beautiful professional resume.</p>
+      </div>
 
-      <div className="p-6 border rounded-lg shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">Personal Information</h2>
+      {/* PERSONAL INFO */}
+      <section className={card}>
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Personal Information</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={profile.name}
-            onChange={(e) => handleChange(e)}
-            className="p-2 border rounded"
-            required
-          />
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={profile.email}
-            onChange={(e) => handleChange(e)}
-            className="p-2 border rounded"
-            required
-          />
+          <input className={input} name="name" placeholder="Full Name" value={profile.name} onChange={handleChange} />
+          <input className={input} name="email" placeholder="Email" value={profile.email} onChange={handleChange} />
         </div>
-        <textarea
-          name="summary"
-          placeholder="Professional Summary"
-          value={profile.summary}
-          onChange={(e) => handleChange(e)}
-          className="w-full mt-4 p-2 border rounded"
-          rows="4"
-        />
-      </div>
+        <textarea className={`${input} mt-4`} name="summary" rows={4} placeholder="Professional Summary" value={profile.summary} onChange={handleChange} />
+      </section>
 
-      <div className="p-6 border rounded-lg shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">Experience</h2>
-        {profile.experience.map((exp, index) => (
-          <div key={index} className="mb-4 p-4 border-b">
-            <input
-              type="text"
-              name="title"
-              placeholder="Job Title"
-              value={exp.title}
-              onChange={(e) => handleChange(e, index, "experience")}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <input
-              type="text"
-              name="company"
-              placeholder="Company"
-              value={exp.company}
-              onChange={(e) => handleChange(e, index, "experience")}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <input
-                type="text"
-                name="startDate"
-                placeholder="Start Date"
-                value={exp.startDate}
-                onChange={(e) => handleChange(e, index, "experience")}
-                className="p-2 border rounded"
-              />
-              <input
-                type="text"
-                name="endDate"
-                placeholder="End Date"
-                value={exp.endDate}
-                onChange={(e) => handleChange(e, index, "experience")}
-                className="p-2 border rounded"
-              />
+      {/* EXPERIENCE */}
+      <section className={card}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-gray-800">Experience</h2>
+          <button type="button" onClick={() => addSection("experience")} className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-xl shadow-md hover:bg-blue-700">
+            <PlusIcon className="w-5 h-5" /> Add
+          </button>
+        </div>
+
+        {profile.experience.map((exp, idx) => (
+          <div key={idx} className="relative bg-gray-100 p-5 rounded-xl mb-4 border border-gray-300 shadow-inner">
+            <button type="button" onClick={() => deleteSection("experience", idx)} className="absolute top-3 right-3 text-red-600 hover:text-red-800">
+              <TrashIcon className="w-6 h-6" />
+            </button>
+            <input className={input} placeholder="Job Title" name="title" value={exp.title} onChange={(e) => handleChange(e, idx, "experience")} />
+            <input className={`${input} mt-2`} placeholder="Company" name="company" value={exp.company} onChange={(e) => handleChange(e, idx, "experience")} />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+              <input className={input} placeholder="Start Date" name="startDate" value={exp.startDate} onChange={(e) => handleChange(e, idx, "experience")} />
+              <input className={input} placeholder="End Date" name="endDate" value={exp.endDate} onChange={(e) => handleChange(e, idx, "experience")} />
             </div>
-            <textarea
-              name="description"
-              placeholder="Description & Achievements"
-              value={exp.description}
-              onChange={(e) => handleChange(e, index, "experience")}
-              className="w-full mt-2 p-2 border rounded"
-              rows="3"
-            />
+            <textarea className={`${input} mt-3`} rows={3} placeholder="Description & Achievements" name="description" value={exp.description} onChange={(e) => handleChange(e, idx, "experience")} />
           </div>
         ))}
-        <button
-          type="button"
-          onClick={() => addSection("experience")}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Add Experience
-        </button>
-      </div>
+      </section>
 
-      <div className="p-6 border rounded-lg shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">Education</h2>
-        {profile.education.map((edu, index) => (
-          <div key={index} className="mb-4 p-4 border-b">
-            <input
-              type="text"
-              name="degree"
-              placeholder="Degree"
-              value={edu.degree}
-              onChange={(e) => handleChange(e, index, "education")}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <input
-              type="text"
-              name="institution"
-              placeholder="Institution"
-              value={edu.institution}
-              onChange={(e) => handleChange(e, index, "education")}
-              className="w-full p-2 mb-2 border rounded"
-            />
-            <input
-              type="text"
-              name="year"
-              placeholder="Year of Completion"
-              value={edu.year}
-              onChange={(e) => handleChange(e, index, "education")}
-              className="w-full p-2 border rounded"
-            />
+      {/* EDUCATION */}
+      <section className={card}>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-semibold text-gray-800">Education</h2>
+          <button type="button" onClick={() => addSection("education")} className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-xl shadow-md hover:bg-green-700">
+            <PlusIcon className="w-5 h-5" /> Add
+          </button>
+        </div>
+
+        {profile.education.map((edu, idx) => (
+          <div key={idx} className="relative bg-gray-100 p-5 rounded-xl mb-4 border border-gray-300 shadow-inner">
+            <button type="button" onClick={() => deleteSection("education", idx)} className="absolute top-3 right-3 text-red-600 hover:text-red-800">
+              <TrashIcon className="w-6 h-6" />
+            </button>
+            <input className={input} placeholder="Degree" name="degree" value={edu.degree} onChange={(e) => handleChange(e, idx, "education")} />
+            <input className={`${input} mt-2`} placeholder="Institution" name="institution" value={edu.institution} onChange={(e) => handleChange(e, idx, "education")} />
+            <input className={`${input} mt-2`} placeholder="Year of Completion" name="year" value={edu.year} onChange={(e) => handleChange(e, idx, "education")} />
           </div>
         ))}
-        <button
-          type="button"
-          onClick={() => addSection("education")}
-          className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-        >
-          Add Education
-        </button>
-      </div>
+      </section>
 
-      <div className="p-6 border rounded-lg shadow-sm">
-        <h2 className="text-2xl font-semibold mb-4">Skills</h2>
-        <input
-          type="text"
-          name="skills"
-          placeholder="Comma-separated skills (e.g., React, Node.js, MongoDB)"
-          value={profile.skills}
-          onChange={(e) => handleChange(e)}
-          className="w-full p-2 border rounded"
-        />
-      </div>
+      {/* SKILLS */}
+      <section className={card}>
+        <h2 className="text-2xl font-semibold mb-4 text-gray-800">Skills</h2>
+        <input className={input} name="skills" placeholder="React, Java, SQL, Node.js" value={profile.skills} onChange={handleChange} />
+      </section>
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full px-6 py-3 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 disabled:bg-gray-400"
-      >
+      {/* SUBMIT */}
+      <button type="submit" disabled={loading} className="w-full py-4 bg-purple-600 text-white rounded-2xl text-lg font-semibold shadow-xl hover:bg-purple-700 disabled:bg-gray-400">
         {loading ? "Generating..." : "Generate Resume"}
       </button>
     </form>
   );
-};
-
-export default ResumeForm;
+}

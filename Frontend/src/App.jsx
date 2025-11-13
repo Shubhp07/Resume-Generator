@@ -23,20 +23,21 @@ function App() {
   };
 
   return (
-    <div className="container mx-auto p-8">
-      <header className="text-center mb-10">
-        <h1 className="text-4xl font-bold">AI Resume Generator</h1>
-        <p className="text-lg text-gray-600">Fill in your details and let AI create a professional resume for you.</p>
-      </header>
-      <main className="grid grid-cols-1 md:grid-cols-2 gap-8">
+    <div className="w-full min-h-screen p-8 bg-gray-100">
+      <main className={resumeText ? "grid grid-cols-1 md:grid-cols-2 gap-8" : "grid grid-cols-1"}>
+        {/* LEFT: FORM */}
         <div>
           <ResumeForm onResumeGenerated={handleGenerateResume} />
         </div>
-        <div>
-          {loading && <div className="text-center">Generating...</div>}
-          {error && <div className="text-red-500 text-center">{error}</div>}
-          {resumeText && <ResumeDisplay resumeText={resumeText} />}
-        </div>
+
+        {/* RIGHT: RESUME PREVIEW ONLY WHEN AVAILABLE */}
+        {resumeText && (
+          <div className="bg-white p-6 rounded-2xl shadow-xl">
+            {loading && <div className="text-center">Generating...</div>}
+            {error && <div className="text-red-500 text-center">{error}</div>}
+            <ResumeDisplay resumeText={resumeText} />
+          </div>
+        )}
       </main>
     </div>
   );
