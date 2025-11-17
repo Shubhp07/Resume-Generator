@@ -1,7 +1,9 @@
 import express from 'express';
 import User from '../models/User.js';
+import { googleLogin } from '../controllers/authController.js';
 
 const router = express.Router();
+router.post("/google",googleLogin);
 
 // Simple register endpoint (no passwords here — intended as a lightweight stub)
 router.post('/register', async (req, res) => {
