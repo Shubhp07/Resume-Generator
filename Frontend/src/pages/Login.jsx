@@ -1,6 +1,5 @@
 import { Link, useNavigate } from "react-router-dom";
 import {
-  Search,
   Eye,
   EyeOff,
   Mail,
@@ -38,7 +37,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:8080/api/auth/login",
+        "http://localhost:5000/api/auth/login",
         formData,
         {
           headers: { "Content-Type": "application/json" },
@@ -208,26 +207,90 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Social Login Buttons Grid */}
           <div className="mt-6 grid grid-cols-2 gap-3">
+            {/* Google Login - styled to match Facebook */}
             <div className="flex justify-center">
-              <button
-                onClick={() => {
-                  window.location.href =
-                    "http://localhost:8080/oauth2/authorization/google";
+              <GoogleLogin
+                onSuccess={async (credentialResponse) => {
+                  try {
+                    const res = await axios.post(
+                      "http://localhost:5000/api/auth/google",
+                      {
+                        credential: credentialResponse.credential,
+                      }
+                    );
+
+                    const {
+                      accessToken,
+                      userType,
+                      email,
+                      userId,
+                      fullName,
+                      profilePicture,
+                    } = res.data;
+
+                    // Save auth data
+                    localStorage.setItem("token", accessToken);
+                    localStorage.setItem(
+                      "user",
+                      JSON.stringify({
+                        fullName,
+                        email,
+                        userType,
+                        userId,
+                        profilePicture,
+                      })
+                    );
+
+                    // Redirect user
+                    if (userType === "jobseeker")
+                      navigate("/dashboard/jobseeker");
+                    else if (userType === "employer")
+                      navigate("/dashboard/employer");
+                    else
+                      navigate("/");
+                  } catch (error) {
+                    console.error("Google Login Error:", error);
+                    alert("Google Login Failed");
+                  }
                 }}
-                className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
-              >
-                <svg
-                  className="h-5 w-5"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M21.35 11.1H12v2.8h5.4c-.7 2.1-2.6 3.5-5.4 3.5a6 6 0 1 1 0-12c1.6 0 3 .6 4.1 1.6l2.1-2.1C16.8 3.3 14.6 2.5 12 2.5a9.5 9.5 0 1 0 0 19c5.4 0 9.5-4.4 9.5-9.5 0-.7-.1-1.3-.2-1.9z" />
-                </svg>
-                <span className="ml-2">Google</span>
-              </button>
+                onError={() => {
+                  console.log("Google Login Failed");
+                }}
+                // Custom render
+                renderButton={(props) => (
+                  <button
+                    onClick={props.onClick}
+                    disabled={props.disabled}
+                    className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"
+                  >
+                    {/* Google SVG logo */}
+                    <svg className="h-5 w-5 mr-2" viewBox="0 0 24 24">
+                      <path
+                        fill="#EA4335"
+                        d="M12 10.2v3.6h5.1c-.2 1.2-.9 2.2-2 2.9l3 2.3c1.7-1.5 2.6-3.7 2.6-6.2 0-.5 0-1-.1-1.4H12z"
+                      ></path>
+                      <path
+                        fill="#34A853"
+                        d="M12 19c1.6 0 2.9-.5 3.8-1.3l-3-2.3c-.8.5-1.8.8-2.8.8-2.1 0-3.9-1.4-4.5-3.4l-3 2.3A7.994 7.994 0 0 0 12 19z"
+                      ></path>
+                      <path
+                        fill="#FBBC05"
+                        d="M7.5 13.3c-.3-.9-.3-1.8 0-2.7l-3-2.3A8.022 8.022 0 0 0 4 12c0 1.3.3 2.6 1.2 3.7l3-2.4z"
+                      ></path>
+                      <path
+                        fill="#4285F4"
+                        d="M12 6.3c.9 0 1.7.2 2.3.7l1.8-1.8C15.2 4.2 13.7 3.5 12 3.5A7.994 7.994 0 0 0 4.5 8.6l3 2.3C8.2 9.5 9.9 8.3 12 8.3z"
+                      ></path>
+                    </svg>
+                    <span>Sign in with Google</span>
+                  </button>
+                )}
+              />
             </div>
 
+            {/* Facebook Login - styled identically */}
             <button
               type="button"
               className="w-full inline-flex justify-center py-3 px-4 border border-gray-300 rounded-lg shadow-sm bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 transition-colors"

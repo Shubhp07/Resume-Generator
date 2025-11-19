@@ -1,17 +1,27 @@
+import { OAuth2Client } from "google-auth-library";
+import User from "../models/User.js";
+import jwt from "jsonwebtoken";
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 export const googleLogin = async (req, res) => {
   try {
-    const { credentail } = req.body;
+    const { credential } = req.body;
 
+    if (!credential) {
+      return res.status(400).json({ message: "No credential provided" });
+    }
+
+    // Verify token from Google
     const ticket = await client.verifyIdToken({
-      idToken: credentail,
+      idToken: credential,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const payload = ticket.getPayload();
     const { email, name, picture } = payload;
 
+    // Check if user exists
     let user = await User.findOne({ email });
 
     if (!user) {
@@ -21,19 +31,22 @@ export const googleLogin = async (req, res) => {
         profilePicture: picture,
         password: null,
         userType: "user",
+        isOAuth: true,
       });
     }
 
-    const acessToken = jwtDecode.sign(
+    // Create JWT
+    const accessToken = jwt.sign(
       {
         id: user._id,
         userType: user.userType,
       },
+      process.env.JWT_SECRET,
       { expiresIn: "1d" }
     );
 
     return res.json({
-      acessToken,
+      accessToken,
       userId: user._id,
       email: user.email,
       fullName: user.fullName,
