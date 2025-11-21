@@ -24,7 +24,7 @@ const SignIn = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    userType: "jobseeker",
+    userType: "user",
     agreeToTerms: false,
   });
 
@@ -59,7 +59,7 @@ const SignIn = () => {
       };
 
       const response = await axios.post(
-        "http://localhost:8080/api/auth/register",
+        "http://localhost:5000/api/auth/register",
         payload,
         {
           headers: {
@@ -75,10 +75,10 @@ const SignIn = () => {
         localStorage.setItem("userEmail", formData.email);
 
         // Navigate based on userType
-        if (formData.userType.toLowerCase() === "jobseeker") {
-          navigate("/dashboard/jobseeker");
-        } else if (formData.userType.toLowerCase() === "employer") {
-          navigate("/dashboard/employer");
+        if (formData.userType.toLowerCase() === "user") {
+          navigate("/userDashboard");
+        } else if (formData.userType.toLowerCase() === "admin") {
+          navigate("/adminDashboard");
         } else {
           navigate("/");
         }

@@ -64,10 +64,10 @@ const Login = () => {
           JSON.stringify({ fullName, email, userType, userId, profilePicture })
         );
 
-        if (userType.toLowerCase() === "jobseeker") {
-          navigate("/dashboard/jobseeker");
-        } else if (userType.toLowerCase() === "employer") {
-          navigate("/dashboard/employer");
+        if (userType.toLowerCase() === "user") {
+          navigate("/userDashboard");
+        } else if (userType.toLowerCase() === "admin") {
+          navigate("/adminDashboard");
         } else {
           navigate("/");
         }
@@ -244,10 +244,10 @@ const Login = () => {
                     );
 
                     // Redirect user
-                    if (userType === "jobseeker")
-                      navigate("/dashboard/jobseeker");
-                    else if (userType === "employer")
-                      navigate("/dashboard/employer");
+                    if (userType === "user")
+                      navigate("/userDashboard");
+                    else if (userType === "admin")
+                      navigate("/adminDashboard");
                     else
                       navigate("/");
                   } catch (error) {
