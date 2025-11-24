@@ -245,7 +245,7 @@ const Login = () => {
 
                     // Redirect user
                     if (userType === "user")
-                      navigate("/userDashboard");
+                      navigate("/resume-builder");
                     else if (userType === "admin")
                       navigate("/adminDashboard");
                     else

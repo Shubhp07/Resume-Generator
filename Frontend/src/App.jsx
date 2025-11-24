@@ -3,7 +3,8 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/home.jsx";
 import Login from "./pages/Login.jsx";
 import SignIn from "./pages/SignIn.jsx";
-import UserDashboard from "./pages/UserDashBoard.jsx";
+import UserDashboard from "./pages/UserDashboard.jsx";
+import ResumeBuilder from "./components/ResumeBuilder.jsx";
 
 function App() {
   return (
@@ -12,7 +13,9 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signin" element={<SignIn />} />  
-        <Route path="/userDashboard" element={<UserDashboard/>}/>     
+        <Route path="/userDashboard" element={<UserDashboard/>}/>
+        <Route path="/resume-builder" element={<ResumeBuilder />} />
+
       </Routes>
     </BrowserRouter>
   );

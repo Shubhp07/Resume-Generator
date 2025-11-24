@@ -76,7 +76,7 @@ const SignIn = () => {
 
         // Navigate based on userType
         if (formData.userType.toLowerCase() === "user") {
-          navigate("/userDashboard");
+          navigate("/resume-builder");
         } else if (formData.userType.toLowerCase() === "admin") {
           navigate("/adminDashboard");
         } else {

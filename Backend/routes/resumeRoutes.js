@@ -1,15 +1,48 @@
 import express from 'express';
-import { createResume, getResume, listResumes } from '../controllers/resumeController.js';
+import Resume from '../models/Resume.js';
 
 const router = express.Router();
 
-// POST /api/resume  -> generate and save a resume
-router.post('/', createResume);
+// Create new resume
+router.post('/', async (req, res) => {
+  try {
+    const { resumeData, userId } = req.body;
 
-// GET /api/resume   -> list resumes
-router.get('/', listResumes);
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
 
-// GET /api/resume/:id -> get a specific resume
-router.get('/:id', getResume);
+    const newResume = await Resume.createOrUpdate(null, {
+      ...resumeData,
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+
+    res.status(201).json({ message: 'Resume created', resume: newResume });
+  } catch (error) {
+    console.error('Error creating resume:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Update existing resume
+router.put('/:id', async (req, res) => {
+  try {
+    const resumeId = req.params.id;
+    const { resumeData } = req.body;
+
+    const updatedResume = await Resume.createOrUpdate(resumeId, resumeData);
+
+    if (!updatedResume) {
+      return res.status(404).json({ message: 'Resume not found' });
+    }
+
+    res.json({ message: 'Resume updated', resume: updatedResume });
+  } catch (error) {
+    console.error('Error updating resume:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
 
 export default router;
