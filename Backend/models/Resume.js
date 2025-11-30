@@ -1,40 +1,76 @@
-import mongoose from 'mongoose';
+import express from 'express';
+import Resume from '../models/Resume.js'; // Adjust path
+import authMiddleware from '../middlewares/authMiddleware.js'; // Your auth middleware
 
-const ResumeSchema = new mongoose.Schema({
-  title: { type: String, default: 'Untitled Resume' },
-  personal: {
-    fullName: String,
-    role: String,
-    email: String,
-    phone: String,
-    location: String,
-    linkedin: String,
-    website: String,
-    summary: String,
-  },
-  experience: Array,
-  education: Array,
-  projects: Array,
-  skills: Array,
-  certifications: Array,
-  createdAt: { type: Date, default: Date.now },
-  updatedAt: { type: Date, default: Date.now },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // link to user model
+const router = express.Router();
+
+// CREATE new resume
+router.post('/create', authMiddleware, async (req, res) => {
+  try {
+    const { resume } = req.body;
+    
+    // Ensure userId from auth middleware
+    const resumeData = {
+      ...resume,
+      userId: req.user.id, // From auth middleware
+      updatedAt: new Date(),
+    };
+
+    const newResume = await Resume.createOrUpdate(null, resumeData);
+    
+    res.status(201).json({
+      _id: newResume._id,
+      id: newResume._id, // For frontend compatibility
+      ...newResume.toObject()
+    });
+  } catch (error) {
+    console.error('Create resume error:', error);
+    res.status(500).json({ error: 'Failed to create resume' });
+  }
 });
 
-// Static method to create or update a resume
-ResumeSchema.statics.createOrUpdate = async function (resumeId, resumeData) {
-  if (!resumeId) {
-    // Create new resume
-    const resume = new this(resumeData);
-    return await resume.save();
-  } else {
-    // Update existing resume
-    resumeData.updatedAt = new Date();
-    return await this.findByIdAndUpdate(resumeId, resumeData, { new: true });
+// GET user's resumes
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const resumes = await Resume.find({ userId: req.user.id })
+      .sort({ updatedAt: -1 })
+      .lean();
+    
+    res.json(resumes);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch resumes' });
   }
-};
+});
 
-const Resume = mongoose.model('Resume', ResumeSchema);
+// UPDATE resume (for auto-save)
+router.put('/:id', authMiddleware, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { resume } = req.body;
+    
+    const updatedResume = await Resume.createOrUpdate(id, resume);
+    
+    res.json({
+      _id: updatedResume._id,
+      id: updatedResume._id,
+      ...updatedResume.toObject()
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update resume' });
+  }
+});
 
-export default Resume;
+// DELETE resume
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    await Resume.findOneAndDelete({ 
+      _id: req.params.id, 
+      userId: req.user.id 
+    });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete resume' });
+  }
+});
+
+export default router;

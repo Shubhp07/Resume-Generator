@@ -18,86 +18,32 @@ import {
   Layout,
   Check,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 // const auth = getAuth(app);
 // const db = getFirestore(app);
 const appId = typeof __app_id !== "undefined" ? __app_id : "resume-builder-app";
 
 const INITIAL_RESUME_STATE = {
-  title: 'Untitled Resume',
-  templateId: 'modern', // Default template
+  title: "",
+  templateId: "modern", // Default template
   personal: {
-    fullName: 'Shubham Patil',
-    role: 'Full Stack Developer',
-    email: 'sp5535258@gmail.com',
-    phone: '+91-7218588835',
-    location: 'Pune, India',
-    linkedin: 'linkedin.com/in/shubham',
-    website: 'shubhampatil.dev'
+    fullName: "",
+    role: "",
+    email: "",
+    phone: "",
+    location: "",
+    linkedin: "",
+    website: "",
   },
-  summary: 'I am a dedicated computer science professional with a strong foundation in programming languages like Python and Java, complemented by practical experience in full-stack development. My passion for delivering user-centric solutions is reflected in my successful projects.',
-  experience: [
-    {
-      id: 'exp1',
-      role: 'Full Stack Developer Intern',
-      company: 'DevEdits LLP',
-      location: 'Pune, India',
-      startDate: '2024-04',
-      endDate: '2024-10',
-      description: '• Developed scalable and responsive web applications using ReactJS and Node.js.\n• Implemented cloud-based deployment solutions (AWS) to ensure high availability.\n• Built RESTful APIs and third-party services.'
-    }
-  ],
-  education: [
-    {
-      id: 'edu1',
-      degree: 'Bachelor of Computer Science',
-      school: 'Shivraj College',
-      location: 'Gadhinglaj, India',
-      startDate: '2020-06',
-      endDate: '2023-04'
-    },
-    {
-      id: 'edu2',
-      degree: 'Master Of Computer Application',
-      school: 'Sinhgad Institute of Management',
-      location: 'Pune, India',
-      startDate: '2023-08',
-      endDate: 'Present'
-    }
-  ],
-  projects: [
-    {
-      id: 'proj1',
-      name: 'JobHub-Online Job Portal',
-      startDate: '2025-08',
-      endDate: '2025-09',
-      description: 'An online job portal where users can manage job postings and applications. Designed and implemented RESTful APIs for job and user management.'
-    },
-    {
-      id: 'proj2',
-      name: 'Referral Platform',
-      startDate: '2024-09',
-      endDate: '2024-10',
-      description: 'A platform designed for users to refer jobs and track referrals effectively. Utilized Redis as an in-memory datastore for high-performance.'
-    }
-  ],
-  skills: ['Java', 'Python', 'React', 'Node.js', 'SQL', 'MongoDB', 'AWS', 'Docker', 'Git'],
-  certifications: [
-    { id: 'cert1', name: 'JAVA - Spring Board' },
-    { id: 'cert2', name: 'JavaScript Essentials - Cisco' }
-  ],
-  customSections: [
-    {
-      id: 'cust1',
-      title: 'Strengths',
-      items: [
-        { id: 'i1', text: 'Problem-Solving: Strong ability to analyze complex challenges.' },
-        { id: 'i2', text: 'Effective Communication: Ability to clearly articulate technical concepts.' }
-      ]
-    }
-  ]
+  summary: "",
+  experience: [], // empty array for user to add jobs
+  education: [], // empty array for user to add education
+  projects: [], // empty array for user to add projects
+  skills: [], // empty array or pre-fill if desired with common skills
+  certifications: [], // empty array
+  customSections: [], // empty array
 };
-
 
 // --- Helper Components ---
 
@@ -1032,7 +978,6 @@ const MinimalTemplate = ({
     </div>
   </div>
 );
-
 // --- Main Template Switcher ---
 const TemplateRenderer = ({ data, onUpdate, onAddItem, onRemoveItem }) => {
   // Helper Functions shared by all templates
@@ -1072,128 +1017,202 @@ const TemplateRenderer = ({ data, onUpdate, onAddItem, onRemoveItem }) => {
 
 // --- App & Dashboard Logic ---
 
-const AuthScreen = ({ onLogin }) => (
-  <div className="min-h-screen flex items-center justify-center bg-slate-50">
-    <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
-      <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
-        <FileText className="text-white w-8 h-8" />
-      </div>
-      <h1 className="text-2xl font-bold text-slate-800 mb-2">Resume Builder</h1>
-      <p className="text-slate-500 mb-8">
-        Create professional resumes in minutes.
-      </p>
-      <button
-        onClick={onLogin}
-        className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2"
-      >
-        <User className="w-4 h-4" /> Start Building
-      </button>
-    </div>
-  </div>
-);
+// const AuthScreen = ({ onLogin }) => (
+//   <div className="min-h-screen flex items-center justify-center bg-slate-50">
+//     <div className="bg-white p-8 rounded-xl shadow-lg max-w-md w-full text-center">
+//       <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-6">
+//         <FileText className="text-white w-8 h-8" />
+//       </div>
+//       <h1 className="text-2xl font-bold text-slate-800 mb-2">Resume Builder</h1>
+//       <p className="text-slate-500 mb-8">
+//         Create professional resumes in minutes.
+//       </p>
+//       <button
+//         onClick={onLogin}
+//         className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium flex items-center justify-center gap-2"
+//       >
+//         <User className="w-4 h-4" /> Start Building
+//       </button>
+//     </div>
+//   </div>
+// );
 
-const Dashboard = ({ resumes, onCreate, onEdit, onDelete, onLogout }) => (
-  <div className="min-h-screen bg-slate-50 p-6">
-    <header className="max-w-6xl mx-auto flex justify-between items-center mb-8">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-          <FileText className="text-white w-6 h-6" />
+const Dashboard = ({ resumes, onCreate, onEdit, onDelete, onLogout }) => {
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const userMenuRef = useRef(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogOut = ()=>{
+    localStorage.removeItem("token");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("user");
+
+    // Redirect to login (or home)
+    navigate("/login");
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50 p-6">
+      {/* Header with User Menu */}
+      <header className="max-w-6xl mx-auto flex justify-between items-center mb-8">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+            <FileText className="text-white w-6 h-6" />
+          </div>
+          <h1 className="text-2xl font-bold text-slate-800">My Resumes</h1>
         </div>
-        <h1 className="text-2xl font-bold text-slate-800">My Resumes</h1>
-      </div>
-      <button
-        onClick={onLogout}
-        className="text-slate-500 hover:text-red-600 flex items-center gap-2 text-sm font-medium"
-      >
-        <LogOut className="w-4 h-4" /> Sign Out
-      </button>
-    </header>
-    <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <button
-        onClick={onCreate}
-        className="group flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all"
-      >
-        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
-          <Plus className="w-6 h-6 text-slate-400 group-hover:text-blue-600" />
-        </div>
-        <span className="font-medium text-slate-600 group-hover:text-blue-600">
-          Create New Resume
-        </span>
-      </button>
-      {resumes.map((resume) => (
-        <div
-          key={resume.id}
-          className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-slate-200 flex flex-col h-64"
-        >
-          <div
-            className="h-32 bg-slate-100 border-b border-slate-100 relative group cursor-pointer"
-            onClick={() => onEdit(resume)}
+
+        {/* User menu - REPLACES the old Sign Out button */}
+        <div className="relative" ref={userMenuRef}>
+          <button
+            onClick={() => setIsUserMenuOpen((o) => !o)}
+            className="flex items-center gap-2 px-3 py-2 bg-white border border-slate-200 rounded-full shadow-sm hover:bg-slate-50 text-slate-700 text-sm"
           >
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/50">
-              <Edit3 className="w-8 h-8 text-blue-600" />
-            </div>
-            <div className="p-4 transform scale-50 origin-top-left w-[200%] select-none opacity-50">
-              <h1 className="text-2xl font-bold text-slate-800">
-                {resume.personal?.fullName}
-              </h1>
-              <p className="text-sm text-blue-600">
-                {resume.templateId || "Modern"} Template
-              </p>
-            </div>
-          </div>
-          <div className="p-4 flex-1 flex flex-col justify-between">
-            <div>
-              <h3 className="font-semibold text-slate-800 truncate">
-                {resume.title}
-              </h3>
-              <p className="text-xs text-slate-500 mt-1">
-                Last updated: {resume.updatedAt?.toDate().toLocaleDateString()}
-              </p>
-            </div>
-            <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+            <User className="w-4 h-4" />
+            <span className="hidden sm:inline">Account</span>
+          </button>
+
+          {isUserMenuOpen && (
+            <div className="absolute right-0 mt-2 w-44 bg-white rounded-lg shadow-lg border border-slate-200 py-1 text-sm z-20">
               <button
-                onClick={() => onEdit(resume)}
-                className="text-sm font-medium text-blue-600 hover:text-blue-700"
-              >
-                Edit
-              </button>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onDelete(resume.id);
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  // TODO: Profile action
                 }}
-                className="text-slate-400 hover:text-red-600 transition-colors"
+                className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
               >
-                <Trash2 className="w-4 h-4" />
+                <User className="w-4 h-4" />
+                Profile
+              </button>
+              <button
+                onClick={() => {
+                  setIsUserMenuOpen(false);
+                  // TODO: Details action
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 text-slate-700"
+              >
+                <FileText className="w-4 h-4" />
+                Details
+              </button>
+              <div className="h-px bg-slate-100 my-1" />
+              <button
+                onClick={handleLogOut}
+                className="w-full text-left px-3 py-2 hover:bg-red-50 flex items-center gap-2 text-red-600"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
               </button>
             </div>
-          </div>
+          )}
         </div>
-      ))}
+      </header>
+
+      {/* Your original resume grid with Create New Resume button */}
+      <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {/* CREATE NEW RESUME BUTTON - YOUR ORIGINAL */}
+        <button
+          onClick={onCreate}
+          className="group flex flex-col items-center justify-center h-64 border-2 border-dashed border-slate-300 rounded-xl hover:border-blue-500 hover:bg-blue-50 transition-all"
+        >
+          <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-100 transition-colors">
+            <Plus className="w-6 h-6 text-slate-400 group-hover:text-blue-600" />
+          </div>
+          <span className="font-medium text-slate-600 group-hover:text-blue-600">
+            Create New Resume
+          </span>
+        </button>
+
+        {/* Your existing resumes */}
+        {resumes.map((resume) => (
+          <div
+            key={resume.id}
+            className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow overflow-hidden border border-slate-200 flex flex-col h-64"
+          >
+            {/* Resume preview card - your original code */}
+            <div
+              className="h-32 bg-slate-100 border-b border-slate-100 relative group cursor-pointer"
+              onClick={() => onEdit(resume)}
+            >
+              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-white/50">
+                <Edit3 className="w-8 h-8 text-blue-600" />
+              </div>
+            </div>
+            {/* Rest of your resume card */}
+            <div className="p-4 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 className="font-semibold text-slate-800 truncate">
+                  {resume.title}
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">
+                  Last updated {resume.updatedAt?.toDate().toLocaleDateString()}
+                </p>
+              </div>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => onEdit(resume)}
+                  className="text-sm font-medium text-blue-600 hover:text-blue-700"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDelete(resume.id);
+                  }}
+                  className="text-slate-400 hover:text-red-600 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 const TemplateSelector = ({ current, onSelect }) => {
   const [isOpen, setIsOpen] = useState(false);
+
   const templates = [
     {
       id: "modern",
       name: "Modern",
-      desc: "Clean 2-column",
-      color: "bg-blue-100",
+      desc: "Clean 2-column layout",
+      color: "bg-gradient-to-r from-blue-500 to-indigo-600",
+      preview: "Two-column professional",
     },
     {
       id: "classic",
       name: "Classic",
-      desc: "Traditional Serif",
-      color: "bg-slate-200",
+      desc: "Traditional serif style",
+      color: "bg-gradient-to-r from-slate-700 to-gray-800",
+      preview: "Timeless executive",
     },
     {
       id: "minimal",
       name: "Minimal",
-      desc: "Sidebar Left",
-      color: "bg-slate-50 border-r-4 border-slate-300",
+      desc: "Sidebar modern design",
+      color: "bg-gradient-to-r from-emerald-500 to-teal-600",
+      preview: "Clean & simple",
+    },
+    {
+      id: "creative",
+      name: "Creative",
+      desc: "Bold color accents",
+      color: "bg-gradient-to-r from-purple-500 to-pink-500",
+      preview: "Stand out design",
     },
   ];
 
@@ -1201,44 +1220,56 @@ const TemplateSelector = ({ current, onSelect }) => {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 rounded-lg transition-colors font-medium"
+        className="flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm border border-slate-200 hover:border-blue-300 shadow-lg hover:shadow-xl rounded-xl transition-all duration-300 font-medium group"
       >
-        <Layout className="w-4 h-4" />
-        <span className="hidden sm:inline">Template:</span>
-        <span className="font-bold capitalize">{current || "Modern"}</span>
+        <Layout className="w-5 h-5 text-slate-700 group-hover:text-blue-600 transition-colors" />
+        <span className="hidden sm:inline">Template</span>
+        <span className="font-bold capitalize bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          {current || "Modern"}
+        </span>
       </button>
+
       {isOpen && (
         <>
           <div
-            className="fixed inset-0 z-10"
+            className="fixed inset-0 z-10 bg-black/20 backdrop-blur-sm"
             onClick={() => setIsOpen(false)}
-          ></div>
-          <div className="absolute top-12 right-0 w-64 bg-white rounded-xl shadow-xl border border-slate-200 p-2 z-20 grid gap-2">
-            {templates.map((t) => (
-              <button
-                key={t.id}
-                onClick={() => {
-                  onSelect(t.id);
-                  setIsOpen(false);
-                }}
-                className={`flex items-center gap-3 p-3 rounded-lg transition-all text-left border ${
-                  current === t.id
-                    ? "border-blue-500 bg-blue-50 ring-1 ring-blue-500"
-                    : "border-transparent hover:bg-slate-50"
-                }`}
-              >
-                <div className={`w-10 h-12 rounded shadow-sm ${t.color}`}></div>
-                <div>
-                  <div className="font-bold text-slate-800 text-sm">
-                    {t.name}
+          />
+          <div className="absolute top-14 right-0 w-80 bg-white/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-100 p-4 z-20 animate-in slide-in-from-top-4 duration-300">
+            <div className="grid grid-cols-1 gap-3">
+              {templates.map((t) => (
+                <button
+                  key={t.id}
+                  onClick={() => {
+                    onSelect(t.id);
+                    setIsOpen(false);
+                  }}
+                  className={`flex items-center gap-4 p-4 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-lg border-2 ${
+                    current === t.id
+                      ? "border-blue-500 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-blue-200 ring-2 ring-blue-200"
+                      : "border-transparent hover:border-slate-200"
+                  }`}
+                >
+                  <div
+                    className={`w-12 h-12 ${t.color} rounded-xl shadow-lg flex items-center justify-center p-2`}
+                  >
+                    <Layout className="w-6 h-6 text-white opacity-90" />
                   </div>
-                  <div className="text-xs text-slate-500">{t.desc}</div>
-                </div>
-                {current === t.id && (
-                  <Check className="w-4 h-4 text-blue-600 ml-auto" />
-                )}
-              </button>
-            ))}
+                  <div className="flex-1 text-left">
+                    <div className="font-bold text-slate-900 text-sm">
+                      {t.name}
+                    </div>
+                    <div className="text-xs text-slate-500">{t.desc}</div>
+                    <div className="text-xs text-slate-400 mt-1">
+                      {t.preview}
+                    </div>
+                  </div>
+                  {current === t.id && (
+                    <Check className="w-5 h-5 text-blue-600 ml-auto" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </>
       )}
@@ -1275,24 +1306,39 @@ export default function App() {
   }, [user]);
 
   const handleCreate = async () => {
-  // Define or import INITIAL_RESUME_STATE
-  const newResume = {
-    ...INITIAL_RESUME_STATE,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    try {
+      const newResume = {
+        ...INITIAL_RESUME_STATE,
+        title: "",
+        templateId: "modern",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+
+      const response = await fetch("/api/resumes/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ resume: newResume }),
+      });
+
+      if (!response.ok) throw new Error("Failed to create");
+
+      const createdResume = await response.json();
+
+      setResumes((prev) => [createdResume, ...prev]);
+      setCurrentResume(createdResume);
+      setView("editor");
+    } catch (error) {
+      console.error("Create error:", error);
+      alert("Failed to create resume");
+    }
   };
 
-  // Generate a unique ID locally
-  const generatedId = Math.random().toString(36).substring(2, 15);
 
-  // Simulate saving resume (e.g., localStorage or backend call)
-  // localStorage.setItem(`resume_${generatedId}`, JSON.stringify(newResume));
-
-  // Update state with new resume including generated ID
-  setCurrentResume({ id: generatedId, ...newResume });
-  setView("editor");
-};
-
+  
 
   const handleSave = async () => {
     if (!currentResume || !user) return;
@@ -1368,9 +1414,18 @@ export default function App() {
       <Dashboard
         resumes={resumes}
         onCreate={handleCreate}
-        onEdit={(r) => {
-          setCurrentResume(r);
-          setView("editor");
+        onEdit={async (r) => {
+          try {
+            const response = await fetch(
+              `/api/resumes/${resume.id || resume._id}`
+            );
+            const latestResume = await response.json();
+
+            setCurrentResume(r);
+            setView("editor");
+          } catch (error) {
+            console.error("Load Error", error);
+          }
         }}
         onDelete={async (id) => {
           if (window.confirm("Delete?"))
@@ -1381,6 +1436,65 @@ export default function App() {
         onLogout={() => signOut(auth)}
       />
     );
+
+  const saveTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    if (!currentResume || view !== "editor") return;
+
+    // Clear previous timeout
+    if (saveTimeoutRef.current) {
+      clearTimeout(saveTimeoutRef.current);
+    }
+
+    // Auto-save after 2 seconds of inactivity
+    saveTimeoutRef.current = setTimeout(async () => {
+      setSaving(true);
+      try {
+        await saveResume(currentResume);
+        setSaving(false);
+      } catch (error) {
+        console.error("Auto-save failed:", error);
+        setSaving(false);
+      }
+    }, 2000);
+
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, [currentResume, view]);
+
+  // Add this save function
+  const saveResume = useCallback(async (resume) => {
+    try {
+      const response = await fetch(`/api/resumes/${resume.id || resume._id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`, // Your auth token
+        },
+        body: JSON.stringify({ resume }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Save failed");
+      }
+
+      const savedResume = await response.json();
+
+      // Update state with saved data (includes MongoDB _id)
+      setCurrentResume(savedResume);
+      setResumes((prev) =>
+        prev.map((r) =>
+          r.id === savedResume.id || r._id === savedResume._id ? savedResume : r
+        )
+      );
+    } catch (error) {
+      throw error;
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-slate-100 flex flex-col">
@@ -1399,6 +1513,7 @@ export default function App() {
             onChange={(e) =>
               setCurrentResume((prev) => ({ ...prev, title: e.target.value }))
             }
+            placeholder="Untitled Resume"
           />
         </div>
         <div className="flex items-center gap-4">
@@ -1411,7 +1526,7 @@ export default function App() {
           <div className="h-6 w-px bg-slate-200 mx-2"></div>
           <div className="text-xs text-slate-400 font-medium flex items-center gap-1">
             {saving ? (
-              <>  
+              <>
                 <Loader2 className="w-3 h-3 animate-spin" /> Saving
               </>
             ) : (
@@ -1443,4 +1558,3 @@ export default function App() {
     </div>
   );
 }
-

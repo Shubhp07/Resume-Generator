@@ -1,9 +1,10 @@
 import express from "express";
 import User from "../models/User.js";
-import { googleLogin } from "../controllers/authController.js";
+import { googleLogin, loginUser } from "../controllers/authController.js";
 import bcrypt from "bcryptjs";
 
 const router = express.Router();
+router.post("/login",loginUser);
 router.post("/google", googleLogin);
 
 // Simple register endpoint (no passwords here — intended as a lightweight stub)

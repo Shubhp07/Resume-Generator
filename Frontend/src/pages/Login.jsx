@@ -43,8 +43,8 @@ const Login = () => {
           headers: { "Content-Type": "application/json" },
         }
       );
-      console.log("Login response full:", response.data);
-      console.log("Access Token:", response.data.accessToken);
+      // console.log("Login response full:", response.data);
+      // console.log("Access Token:", response.data.accessToken);
 
       if (response.status === 200) {
         const {
@@ -65,7 +65,7 @@ const Login = () => {
         );
 
         if (userType.toLowerCase() === "user") {
-          navigate("/userDashboard");
+          navigate("/resume-builder");
         } else if (userType.toLowerCase() === "admin") {
           navigate("/adminDashboard");
         } else {

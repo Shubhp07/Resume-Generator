@@ -68,7 +68,7 @@ const SignIn = () => {
         }
       );
 
-      if (response.status === 200) {
+      if (response.status === 200|| response.status === 201) {
         // Save user data from response, if available
         // Adjust if response.data contains user info, else save from formData
         localStorage.setItem("userType", formData.userType);

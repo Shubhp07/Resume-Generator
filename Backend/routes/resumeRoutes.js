@@ -1,5 +1,6 @@
 import express from 'express';
 import Resume from '../models/Resume.js';
+import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
@@ -27,21 +28,26 @@ router.post('/', async (req, res) => {
 });
 
 // Update existing resume
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const resumeId = req.params.id;
-    const { resumeData } = req.body;
-
-    const updatedResume = await Resume.createOrUpdate(resumeId, resumeData);
-
-    if (!updatedResume) {
-      return res.status(404).json({ message: 'Resume not found' });
-    }
-
-    res.json({ message: 'Resume updated', resume: updatedResume });
+    const { id } = req.params;
+    const { resume } = req.body;
+    
+    // Use your existing createOrUpdate static method
+    const updatedResume = await Resume.createOrUpdate(id, {
+      ...resume,
+      userId: req.user.id,
+      updatedAt: new Date()
+    });
+    
+    res.json({
+      _id: updatedResume._id,
+      id: updatedResume._id.toString(), // For frontend
+      ...updatedResume.toObject()
+    });
   } catch (error) {
-    console.error('Error updating resume:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Update error:', error);
+    res.status(500).json({ error: 'Failed to save resume' });
   }
 });
 
