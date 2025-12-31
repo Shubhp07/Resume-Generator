@@ -4,50 +4,71 @@ import authMiddleware from '../middlewares/authMiddleware.js';
 
 const router = express.Router();
 
-// Create new resume
-router.post('/', async (req, res) => {
+// CREATE new resume
+router.post('/create', async (req, res) => {  // ← No authMiddleware for now
   try {
-    const { resumeData, userId } = req.body;
-
-    if (!userId) {
-      return res.status(400).json({ message: 'User ID is required' });
-    }
+    const { resume } = req.body;
+    const token = req.headers.authorization?.split(' ')[1];
+    
+    if (!token) return res.status(401).json({ error: 'Token required' });
+    
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
+    const userId = payload.id || payload.userId || payload.sub;
+    
+    if (!userId) return res.status(401).json({ error: 'Invalid token' });
 
     const newResume = await Resume.createOrUpdate(null, {
-      ...resumeData,
+      ...resume,
       userId,
       createdAt: new Date(),
       updatedAt: new Date(),
     });
 
-    res.status(201).json({ message: 'Resume created', resume: newResume });
+    res.status(201).json({
+      _id: newResume._id,
+      id: newResume._id.toString(),
+      ...newResume.toObject()
+    });
   } catch (error) {
-    console.error('Error creating resume:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    console.error('Create resume error:', error);
+    res.status(500).json({ error: 'Failed to create resume' });
   }
 });
 
-// Update existing resume
+// GET, PUT, DELETE routes (keep as-is)
+router.get('/', authMiddleware, async (req, res) => {
+  try {
+    const resumes = await Resume.find({ userId: req.user.id })
+      .sort({ updatedAt: -1 }).lean();
+    res.json(resumes);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch resumes' });
+  }
+});
+
 router.put('/:id', authMiddleware, async (req, res) => {
   try {
-    const { id } = req.params;
-    const { resume } = req.body;
-    
-    // Use your existing createOrUpdate static method
-    const updatedResume = await Resume.createOrUpdate(id, {
-      ...resume,
+    const updatedResume = await Resume.createOrUpdate(req.params.id, {
+      ...req.body.resume,
       userId: req.user.id,
       updatedAt: new Date()
     });
-    
     res.json({
       _id: updatedResume._id,
-      id: updatedResume._id.toString(), // For frontend
+      id: updatedResume._id.toString(),
       ...updatedResume.toObject()
     });
   } catch (error) {
-    console.error('Update error:', error);
-    res.status(500).json({ error: 'Failed to save resume' });
+    res.status(500).json({ error: 'Failed to update resume' });
+  }
+});
+
+router.delete('/:id', authMiddleware, async (req, res) => {
+  try {
+    await Resume.findOneAndDelete({ _id: req.params.id, userId: req.user.id });
+    res.json({ success: true });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete resume' });
   }
 });
 

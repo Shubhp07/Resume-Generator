@@ -69,7 +69,7 @@ const Login = () => {
         } else if (userType.toLowerCase() === "admin") {
           navigate("/adminDashboard");
         } else {
-          navigate("/");
+          navigate("/resume-builder");
         }
       }
     } catch (error) {

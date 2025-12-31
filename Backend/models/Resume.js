@@ -1,76 +1,73 @@
-import express from 'express';
-import Resume from '../models/Resume.js'; // Adjust path
-import authMiddleware from '../middlewares/authMiddleware.js'; // Your auth middleware
+import mongoose from "mongoose";
 
-const router = express.Router();
+const resumeSchema = new mongoose.Schema(
+  {
+    userId: { type: String, required: true, index: true },
+    title: { type: String, default: "Untitled Resume" },
+    templateId: { type: String, default: "modern" },
+    personal: {
+      fullName: String,
+      role: String,
+      email: String,
+      phone: String,
+      location: String,
+      linkedin: String,
+      website: String,
+    },
+    summary: String,
+    experience: [
+      {
+        id: String,
+        role: String,
+        company: String,
+        location: String,
+        startDate: String,
+        endDate: String,
+        description: String,
+      },
+    ],
+    education: [
+      {
+        id: String,
+        degree: String,
+        school: String,
+        startDate: String,
+        endDate: String,
+      },
+    ],
+    projects: [
+      {
+        id: String,
+        name: String,
+        startDate: String,
+        endDate: String,
+        description: String,
+      },
+    ],
+    skills: [String],
+    certifications: [{ id: String, name: String }],
+    customSections: [mongoose.Schema.Types.Mixed],
+    createdAt: { type: Date, default: Date.now },
+    updatedAt: { type: Date, default: Date.now },
+  },
+  { toJSON: { virtuals: true }, toObject: { virtuals: true } }
+);
 
-// CREATE new resume
-router.post('/create', authMiddleware, async (req, res) => {
-  try {
-    const { resume } = req.body;
-    
-    // Ensure userId from auth middleware
-    const resumeData = {
-      ...resume,
-      userId: req.user.id, // From auth middleware
+resumeSchema.statics.createOrUpdate = async function (id, data) {
+  if (!id) {
+    const newResume = new this({
+      ...data,
+      createdAt: new Date(),
       updatedAt: new Date(),
-    };
-
-    const newResume = await Resume.createOrUpdate(null, resumeData);
-    
-    res.status(201).json({
-      _id: newResume._id,
-      id: newResume._id, // For frontend compatibility
-      ...newResume.toObject()
     });
-  } catch (error) {
-    console.error('Create resume error:', error);
-    res.status(500).json({ error: 'Failed to create resume' });
+    return await newResume.save();
+  } else {
+    return await this.findByIdAndUpdate(
+      id,
+      { ...data, updatedAt: new Date() },
+      { new: true, runValidators: true }
+    );
   }
-});
+};
 
-// GET user's resumes
-router.get('/', authMiddleware, async (req, res) => {
-  try {
-    const resumes = await Resume.find({ userId: req.user.id })
-      .sort({ updatedAt: -1 })
-      .lean();
-    
-    res.json(resumes);
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch resumes' });
-  }
-});
-
-// UPDATE resume (for auto-save)
-router.put('/:id', authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { resume } = req.body;
-    
-    const updatedResume = await Resume.createOrUpdate(id, resume);
-    
-    res.json({
-      _id: updatedResume._id,
-      id: updatedResume._id,
-      ...updatedResume.toObject()
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update resume' });
-  }
-});
-
-// DELETE resume
-router.delete('/:id', authMiddleware, async (req, res) => {
-  try {
-    await Resume.findOneAndDelete({ 
-      _id: req.params.id, 
-      userId: req.user.id 
-    });
-    res.json({ success: true });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete resume' });
-  }
-});
-
-export default router;
+export default mongoose.model("Resume", resumeSchema);
